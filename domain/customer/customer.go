@@ -1,11 +1,10 @@
-// Package aggregate holds aggregates that combines many entities into a full object
-package aggregate
+// Package customer holds aggregates that combines many entities into a full object
+package customer
 
 import (
 	"errors"
 	"github.com/google/uuid"
-	"github.com/jxckaroo/ddd-go/entity"
-	"github.com/jxckaroo/ddd-go/valueobject"
+	"github.com/jxckaroo/tavern"
 )
 
 var (
@@ -17,11 +16,11 @@ var (
 type Customer struct {
 	// person is the root entity of a customer
 	// which means the person.ID is the main identifier for this aggregate
-	person *entity.Person
+	person *tavern.Person
 	// a customer can hold many products
-	products []*entity.Item
+	products []*tavern.Item
 	// a customer can perform many transactions
-	transactions []valueobject.Transaction
+	transactions []tavern.Transaction
 }
 
 // NewCustomer is a factory to create a new Customer aggregate
@@ -34,7 +33,7 @@ func NewCustomer(name string) (Customer, error) {
 	}
 
 	// Create a new person and generate ID
-	person := &entity.Person{
+	person := &tavern.Person{
 		Name: name,
 		ID:   uuid.New(),
 	}
@@ -42,8 +41,8 @@ func NewCustomer(name string) (Customer, error) {
 	// Create a customer object and initialize all the values to avoid nil pointer exceptions
 	return Customer{
 		person:       person,
-		products:     make([]*entity.Item, 0),
-		transactions: make([]valueobject.Transaction, 0),
+		products:     make([]*tavern.Item, 0),
+		transactions: make([]tavern.Transaction, 0),
 	}, nil
 }
 
@@ -55,7 +54,7 @@ func (c *Customer) GetID() uuid.UUID {
 // SetID sets the root ID
 func (c *Customer) SetID(id uuid.UUID) {
 	if c.person == nil {
-		c.person = &entity.Person{}
+		c.person = &tavern.Person{}
 	}
 	c.person.ID = id
 }
@@ -63,7 +62,7 @@ func (c *Customer) SetID(id uuid.UUID) {
 // SetName changes the name of the Customer
 func (c *Customer) SetName(name string) {
 	if c.person == nil {
-		c.person = &entity.Person{}
+		c.person = &tavern.Person{}
 	}
 	c.person.Name = name
 }

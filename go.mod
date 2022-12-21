@@ -1,4 +1,4 @@
-module github.com/jxckaroo/ddd-go
+module github.com/jxckaroo/tavern
 
 go 1.18
 

@@ -1,16 +1,16 @@
-// Package services holds all the services that connects repositories into a business flow
-package services
+// Package order holds all the services that connects repositories into a business flow related to ordering products
+package order
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"github.com/jxckaroo/ddd-go/aggregate"
-	"github.com/jxckaroo/ddd-go/domain/customer"
-	"github.com/jxckaroo/ddd-go/domain/customer/memory"
-	"github.com/jxckaroo/ddd-go/domain/customer/mongo"
-	"github.com/jxckaroo/ddd-go/domain/product"
-	prodmemory "github.com/jxckaroo/ddd-go/domain/product/memory"
 	"log"
+
+	"github.com/google/uuid"
+	"github.com/jxckaroo/tavern/domain/customer"
+	"github.com/jxckaroo/tavern/domain/customer/memory"
+	"github.com/jxckaroo/tavern/domain/customer/mongo"
+	"github.com/jxckaroo/tavern/domain/product"
+	prodmemory "github.com/jxckaroo/tavern/domain/product/memory"
 )
 
 // OrderConfiguration is an alias for a function that will take in a pointer to an OrderService and modify it
@@ -25,19 +25,16 @@ type OrderService struct {
 // NewOrderService takes a variable amount of OrderConfiguration functions and returns a new OrderService
 // Each OrderConfiguration will be called in the order they are passed in
 func NewOrderService(cfgs ...OrderConfiguration) (*OrderService, error) {
-	// Create the OrderService
+	// Create the orderservice
 	os := &OrderService{}
-
-	// Apply all configurations
+	// Apply all Configurations passed in
 	for _, cfg := range cfgs {
 		// Pass the service into the configuration function
 		err := cfg(os)
-
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	return os, nil
 }
 
@@ -49,13 +46,6 @@ func WithCustomerRepository(cr customer.CustomerRepository) OrderConfiguration {
 		os.customers = cr
 		return nil
 	}
-}
-
-// WithMemoryCustomerRepository applies a memory customer repository to the OrderService
-func WithMemoryCustomerRepository() OrderConfiguration {
-	// Create the memory repo, if we needed parameters, such as connection strings they could be inputted here
-	cr := memory.New()
-	return WithCustomerRepository(cr)
 }
 
 func WithMongoCustomerRepository(connectionString string) OrderConfiguration {
@@ -70,8 +60,15 @@ func WithMongoCustomerRepository(connectionString string) OrderConfiguration {
 	}
 }
 
+// WithMemoryCustomerRepository applies a memory customer repository to the OrderService
+func WithMemoryCustomerRepository() OrderConfiguration {
+	// Create the memory repo, if we needed parameters, such as connection strings they could be inputted here
+	cr := memory.New()
+	return WithCustomerRepository(cr)
+}
+
 // WithMemoryProductRepository adds a in memory product repo and adds all input products
-func WithMemoryProductRepository(products []aggregate.Product) OrderConfiguration {
+func WithMemoryProductRepository(products []product.Product) OrderConfiguration {
 	return func(os *OrderService) error {
 		// Create the memory repo, if we needed parameters, such as connection strings they could be inputted here
 		pr := prodmemory.New()
@@ -88,7 +85,7 @@ func WithMemoryProductRepository(products []aggregate.Product) OrderConfiguratio
 	}
 }
 
-// CreateOrder will chain together all repositories to create a order for a customer
+// CreateOrder will chaintogether all repositories to create a order for a customer
 // will return the collected price of all Products
 func (o *OrderService) CreateOrder(customerID uuid.UUID, productIDs []uuid.UUID) (float64, error) {
 	// Get the customer
@@ -98,7 +95,7 @@ func (o *OrderService) CreateOrder(customerID uuid.UUID, productIDs []uuid.UUID)
 	}
 
 	// Get each Product, Ouchie, We need a ProductRepository
-	var products []aggregate.Product
+	var products []product.Product
 	var price float64
 	for _, id := range productIDs {
 		p, err := o.products.GetByID(id)
@@ -109,8 +106,24 @@ func (o *OrderService) CreateOrder(customerID uuid.UUID, productIDs []uuid.UUID)
 		price += p.GetPrice()
 	}
 
-	// All Products exist in store, now we can create the order
+	// All Products exists in store, now we can create the order
 	log.Printf("Customer: %s has ordered %d products", c.GetID(), len(products))
+	// Add Products and Update Customer
 
 	return price, nil
+}
+
+// AddCustomer will add a new customer and return the customerID
+func (o *OrderService) AddCustomer(name string) (uuid.UUID, error) {
+	c, err := customer.NewCustomer(name)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	// Add to Repo
+	err = o.customers.Add(c)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return c.GetID(), nil
 }

@@ -1,5 +1,5 @@
-// Package valueobject holds value objects that cannot change state and usually have no identifier
-package valueobject
+// Package tavern holds value objects that cannot change state and usually have no identifier
+package tavern
 
 import (
 	"github.com/google/uuid"

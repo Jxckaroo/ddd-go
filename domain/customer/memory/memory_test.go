@@ -2,8 +2,7 @@ package memory
 
 import (
 	"github.com/google/uuid"
-	"github.com/jxckaroo/ddd-go/aggregate"
-	"github.com/jxckaroo/ddd-go/domain/customer"
+	"github.com/jxckaroo/tavern/domain/customer"
 	"testing"
 )
 
@@ -15,7 +14,7 @@ func TestMemory_GetCustomer(t *testing.T) {
 	}
 
 	// Create a fake customer to add to repository
-	cust, err := aggregate.NewCustomer("Percy")
+	cust, err := customer.NewCustomer("Percy")
 
 	if err != nil {
 		t.Fatal(err)
@@ -26,7 +25,7 @@ func TestMemory_GetCustomer(t *testing.T) {
 	// Create the repo to use, and add some test Data to it for testing
 	// Skip Factory for this
 	repo := MemoryRepository{
-		customers: map[uuid.UUID]aggregate.Customer{
+		customers: map[uuid.UUID]customer.Customer{
 			id: cust,
 		},
 	}
@@ -75,10 +74,10 @@ func TestMemory_AddCustomer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := MemoryRepository{
-				customers: map[uuid.UUID]aggregate.Customer{},
+				customers: map[uuid.UUID]customer.Customer{},
 			}
 
-			cust, err := aggregate.NewCustomer(tc.cust)
+			cust, err := customer.NewCustomer(tc.cust)
 			if err != nil {
 				t.Fatal(err)
 			}
